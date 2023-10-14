@@ -39,7 +39,60 @@ struct Path {
 #endif
 
 
-std::vector<Path> longest_track(size_t points, const std::vector<Path>& all_paths);
+std::vector<Path> longest_track(size_t points, const std::vector<Path>& all_paths){
+
+    std::vector<Path> result;
+    std::unordered_map<size_t, std::vector<Path>> graph;
+    std::unordered_map<size_t, unsigned> in_degree;
+    std::queue<size_t> q;
+    std::unordered_map<size_t, unsigned> distance;
+    std::unordered_map<size_t, std::pair<size_t, unsigned>> parent;
+
+    for (size_t i = 0; i < points; i++){
+        in_degree[i] = 0;
+    }
+    
+    for (auto& x : all_paths){
+        graph[x.from].push_back(x);
+        in_degree[x.to]++;
+    }
+
+    for (auto& x : in_degree){
+        if (x.second == 0){
+            q.push(x.first);
+            distance[x.first] = 0;
+            parent[x.first] = {-size_t(2), 0};
+        }
+    }
+
+    unsigned longest = 0;
+    size_t to_longest = 0;
+    while(!q.empty()){
+        auto c = q.front();
+        q.pop();
+
+        for (auto& x : graph[c]){
+            if (distance.count(x.to) == 0 || distance[x.to] < distance[c] + x.length){
+                distance[x.to] = distance[c] + x.length;
+                parent[x.to] = {c, x.length};
+                q.push(x.to);
+
+                if (longest < distance[x.to]){
+                    longest = distance[x.to];
+                    to_longest = x.to;
+                }
+            }
+        }
+    }
+    size_t cur = to_longest;
+    while (parent[cur].first != -size_t(2)){
+        auto x = parent[cur];
+        result.push_back({x.first, cur, x.second});
+        cur = x.first;
+    }
+    std::reverse(result.begin(), result.end());
+    return result;
+}
 
 
 #ifndef __PROGTEST__
