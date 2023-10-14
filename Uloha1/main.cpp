@@ -43,25 +43,21 @@ std::vector<Path> longest_track(size_t points, const std::vector<Path>& all_path
 
     std::vector<Path> result;
     std::vector<std::vector<Path>> graph(points, std::vector<Path>());
-    std::vector<unsigned> in_deg(points, 0);
+    std::vector<unsigned> in_degree(points, 0);
     std::vector<unsigned> distance(points, 0);
-    std::vector<std::pair<size_t, unsigned>> parent(points, {-size_t(2), 0});
+    std::vector<std::pair<size_t, unsigned>> parent(points, {-size_t(2), 0}); //parent and distance
     
     std::queue<size_t> q;
     
-
-    
-    for (auto& x : all_paths){
+    for (auto& x : all_paths){ //count indegs of all vertices
         graph[x.from].push_back(x);
-        in_deg[x.to]++;
+        in_degree[x.to]++;
     }
 
-    for (size_t i = 0; i < points; i++)
-        if (in_deg[i] == 0)
+    for (size_t i = 0; i < points; i++) //when has indeg 0, then the possible path will be as long as possible, so we need to start our bfs from these vertices
+        if (in_degree[i] == 0)
             q.push(i);
-        
     
-
     unsigned longest = 0;
     size_t to_longest = 0;
     while(!q.empty()){
@@ -74,7 +70,7 @@ std::vector<Path> longest_track(size_t points, const std::vector<Path>& all_path
                 distance[x.to] = distance[c] + x.length;
                 parent[x.to] = {c, x.length};
                 q.push(x.to);
-
+                
                 if (longest < distance[x.to]){
                     longest = distance[c] + x.length;
                     to_longest = x.to;
