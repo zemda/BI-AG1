@@ -9,17 +9,17 @@ Ale teď vážně. Ve skutečnosti to trochu problém je. Snadno by se mohlo st�
 Když jste se o problému dozvěděli, hned Vás napadlo řešení. Areál v Osvětamanech se přeci skládá z několika sjezdovek. Třeba kdyby se podařilo je nějak pospojovat do jedné velké sjezdovky, možná bychom na ten limit dosáhli. Vlekaři se Váš nápad pochopitelně zalíbil a hned Vás poprosil o naplánování nejdelší možné trati.
 
 ## Rozhraní programu
-Vaším úkolem je implementovat funkci std::vector<Path> longest_track(size_t points, const std::vector<Path>& all_paths), která v zadané mapě nalezne nejdelší možnou trať pro závod ve sjezdovém lyžování. Trať může začínat a končit na libovolné křižovatce. Parametry jsou počet křižovatek points a seznam použitelných cest mezi křižovatkami all_paths. Každá cesta obsahuje výchozí křižovatku from a cílovou to a lze ji projet pouze v tomto směru, protože všechny úseky musí vést z kopce dolů. Také obsahuje délku dané cesty length. Délka je vždy nezáporné celé číslo.
+Vaším úkolem je implementovat funkci `std::vector<Path> longest_track(size_t points, const std::vector<Path>& all_paths)`, která v zadané mapě nalezne nejdelší možnou trať pro závod ve sjezdovém lyžování. Trať může začínat a končit na libovolné křižovatce. Parametry jsou počet křižovatek `points` a seznam použitelných cest mezi křižovatkami `all_paths`. Každá cesta obsahuje výchozí křižovatku `from` a cílovou `to` a lze ji projet pouze v tomto směru, protože všechny úseky musí vést z kopce dolů. Také obsahuje délku dané cesty length. Délka je vždy nezáporné celé číslo.
 
-Výstupem je seznam navazujících cest (tj. to jedné cesty je from té následující), které tvoří nejdelší možnou trať. Pokud je nejdelších tratí více, lze vrátit libovolnou z nich.
+Výstupem je seznam navazujících cest (tj. `to` jedné cesty je `from` té následující), které tvoří nejdelší možnou trať. Pokud je nejdelších tratí více, lze vrátit libovolnou z nich.
 
 Můžete předpokládat, že vstup je vždy platný, tedy:
-- Křižovatky, na kterých cesty začínají a končí, jsou z rozsahu [0, points).
+- Křižovatky, na kterých cesty začínají a končí, jsou z rozsahu `[0, points)`.
 - Všechny cesty vedou z kopce dolů.
 
 ## Bodové podmínky
 - Pro zisk 3 bodů je třeba úlohu korektně vyřešit pro velmi malé instance. Všechny cesty mají délku 10 nebo méně.
 - Pro zisk 5 nebo 7 bodů je třeba korektně řešit větší instance, ale délky jednotlivých cest jsou stále omezeny 10.
-- Pro zisk 10 bodů je potřeba správně a rychle vyřešit velké instance, které obsahují velmi dlouhé cesty. Stále ale délka přípustné trati nepřesáhne rozsah datového typu int.
+- Pro zisk 10 bodů je potřeba správně a rychle vyřešit velké instance, které obsahují velmi dlouhé cesty. Stále ale délka přípustné trati nepřesáhne rozsah datového typu `int`.
 
 Časové limity jsou 13 sekund na základní test a 6, 11 a 5 sekund na jednotlivé testy rychlosti. Navíc všechny testy rychlosti dohromady musí doběhnout do 15 sekund.
