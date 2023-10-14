@@ -42,28 +42,25 @@ struct Path {
 std::vector<Path> longest_track(size_t points, const std::vector<Path>& all_paths){
 
     std::vector<Path> result;
-    std::unordered_map<size_t, std::vector<Path>> graph;
-    std::unordered_map<size_t, unsigned> in_degree;
+    std::vector<std::vector<Path>> graph(points, std::vector<Path>());
+    std::vector<unsigned> in_deg(points, 0);
+    std::vector<unsigned> distance(points, 0);
+    std::vector<std::pair<size_t, unsigned>> parent(points, {-size_t(2), 0});
+    
     std::queue<size_t> q;
-    std::unordered_map<size_t, unsigned> distance;
-    std::unordered_map<size_t, std::pair<size_t, unsigned>> parent;
+    
 
-    for (size_t i = 0; i < points; i++){
-        in_degree[i] = 0;
-    }
     
     for (auto& x : all_paths){
         graph[x.from].push_back(x);
-        in_degree[x.to]++;
+        in_deg[x.to]++;
     }
 
-    for (auto& x : in_degree){
-        if (x.second == 0){
-            q.push(x.first);
-            distance[x.first] = 0;
-            parent[x.first] = {-size_t(2), 0};
-        }
-    }
+    for (size_t i = 0; i < points; i++)
+        if (in_deg[i] == 0)
+            q.push(i);
+        
+    
 
     unsigned longest = 0;
     size_t to_longest = 0;
@@ -72,13 +69,14 @@ std::vector<Path> longest_track(size_t points, const std::vector<Path>& all_path
         q.pop();
 
         for (auto& x : graph[c]){
-            if (distance.count(x.to) == 0 || distance[x.to] < distance[c] + x.length){
+            if (distance[x.to] < distance[c] + x.length){
+                
                 distance[x.to] = distance[c] + x.length;
                 parent[x.to] = {c, x.length};
                 q.push(x.to);
 
                 if (longest < distance[x.to]){
-                    longest = distance[x.to];
+                    longest = distance[c] + x.length;
                     to_longest = x.to;
                 }
             }
