@@ -40,52 +40,43 @@ struct Path {
 
 
 std::vector<Path> longest_track(size_t points, const std::vector<Path>& all_paths){
-
     std::vector<Path> result;
-    std::vector<std::vector<Path>> graph(points, std::vector<Path>());
-    std::vector<unsigned> in_degree(points, 0);
-    std::vector<unsigned> distance(points, 0);
-    std::vector<std::pair<size_t, unsigned>> parent(points, {-size_t(2), 0}); //parent and distance
-    
+    std::vector<std::vector<std::pair<size_t, int>>> graph(points, std::vector<std::pair<size_t, int>>());
+    std::vector<int> distance(points, 0); //distance to the vertice from the starting point, -1 when they have indegrees at the start
+    std::vector<std::pair<size_t, unsigned>> parent(points, {-size_t(2), 0}); //parent and distance between the two vertices
     std::queue<size_t> q;
     
     for (auto& x : all_paths){ //count indegs of all vertices
-        graph[x.from].push_back(x);
-        in_degree[x.to]++;
+        graph[x.from].push_back({x.to, x.length});
+        distance[x.to] = -1; //distance vect is here used to mark vertices with indegs > 0, but since we dont need that info, we can overwrite it later with distance
     }
 
     for (size_t i = 0; i < points; i++) //when has indeg 0, then the possible path will be as long as possible, so we need to start our bfs from these vertices
-        if (in_degree[i] == 0)
+        if (distance[i] == 0)
             q.push(i);
     
-    unsigned longest = 0;
-    size_t to_longest = 0;
+    int longest = 0;
+    size_t end_point = 0;
     while(!q.empty()){
         auto c = q.front();
         q.pop();
 
         for (auto& x : graph[c]){
-            if (distance[x.to] < distance[c] + x.length){
-                
-                distance[x.to] = distance[c] + x.length;
-                parent[x.to] = {c, x.length};
-                q.push(x.to);
-                
-                if (longest < distance[x.to]){
-                    longest = distance[c] + x.length;
-                    to_longest = x.to;
-                }
-            }
+            if (distance[x.first] > distance[c] + x.second) continue;
+            
+            distance[x.first] = distance[c] + x.second;
+            parent[x.first] = {c, x.second};
+            q.push(x.first);
+            
+            if (longest < distance[x.first])
+                longest = distance[end_point = x.first];                
         }
     }
-    size_t cur = to_longest;
-    while (parent[cur].first != -size_t(2)){
-        auto x = parent[cur];
-        result.push_back({x.first, cur, x.second});
-        cur = x.first;
+    while (parent[end_point].first != -size_t(2)){ //-size_t(2) = no vertex = we are at the start
+        result.push_back({parent[end_point].first, end_point, parent[end_point].second});
+        end_point = parent[end_point].first;
     }
-    std::reverse(result.begin(), result.end());
-    return result;
+    return std::vector<Path>(result.rbegin(), result.rend());
 }
 
 
@@ -143,5 +134,3 @@ int main() {
 }
 
 #endif
-
-
