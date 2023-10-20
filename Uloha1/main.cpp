@@ -46,7 +46,7 @@ std::vector<Path> longest_track(size_t points, const std::vector<Path>& all_path
     std::vector<std::pair<size_t, unsigned>> parent(points, {-size_t(2), 0}); //parent and distance between the two vertices
     std::queue<size_t> q;
     
-    for (auto& x : all_paths){ //count indegs of all vertices
+    for (const auto& x : all_paths){ //count indegs of all vertices
         graph[x.from].push_back({x.to, x.length});
         distance[x.to] = -1; //distance vect is here used to mark vertices with indegs > 0, but since we dont need that info, we can overwrite it later with distance
     }
@@ -61,15 +61,15 @@ std::vector<Path> longest_track(size_t points, const std::vector<Path>& all_path
         auto c = q.front();
         q.pop();
 
-        for (auto& x : graph[c]){
-            if (distance[x.first] > distance[c] + x.second) continue;
-            
-            distance[x.first] = distance[c] + x.second;
-            parent[x.first] = {c, x.second};
-            q.push(x.first);
-            
-            if (longest < distance[x.first])
-                longest = distance[end_point = x.first];                
+        for (const auto& x : graph[c]){
+            if (distance[x.first] < distance[c] + x.second){
+                distance[x.first] = distance[c] + x.second;
+                parent[x.first] = {c, x.second};
+                q.push(x.first);
+                
+                if (longest < distance[x.first])
+                    longest = distance[end_point = x.first];
+            }
         }
     }
     while (parent[end_point].first != -size_t(2)){ //-size_t(2) = no vertex = we are at the start
