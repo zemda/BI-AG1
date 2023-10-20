@@ -170,7 +170,7 @@ size_t bfs(const Graph& G, Vertex u, std::vector<Vertex>& P, std::vector<size_t>
   while (!q.empty()){
     auto v = q.front();
     q.pop();
-    for (auto& x : G[v.first]){
+    for (const auto& x : G[v.first]){
       if (D[x] == NO_DISTANCE){
         D[x] = v.second+1;
         P[x] = v.first;
