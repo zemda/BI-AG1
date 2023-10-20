@@ -166,7 +166,7 @@ std::pair<bool, std::vector<Vertex>> getCycle(const Graph& G, const std::vector<
             auto c = q.back();
             q.pop_back();
 
-            for (auto &x : G[(Vertex)c]){
+            for (const auto &x : G[(Vertex)c]){
                 if (x == vertex){ // its the vertex from which we started = cycle detected
                     cycle_result.push_back(x);
                     while (parent[c] != ROOT){ // construct the cycle path
