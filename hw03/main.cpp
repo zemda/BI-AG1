@@ -29,7 +29,56 @@ using Gift = size_t;
 #endif
 
 std::pair<Price, std::vector<Gift>> optimize_gifts(const std::vector<Employee>& boss, const std::vector<Price>& gift_price){
-  // TODO
+    size_t num_employees = boss.size();
+    size_t num_gifts = gift_price.size();
+    
+    std::vector<std::vector<size_t>> subordinates(num_employees);
+    std::vector<size_t> top_level_employees;
+
+    for(size_t i = 0; i < num_employees; ++i){
+        if(boss[i] == NO_EMPLOYEE)
+            top_level_employees.push_back(i);
+        else
+            subordinates[boss[i]].push_back(i);
+    }
+
+    std::vector<std::pair<Price, Gift>> cheapest_gift(num_employees, {(unsigned long int)-1, (size_t)-1}); 
+    std::vector<std::pair<Price, Gift>> second_cheapest_gift(num_employees, {(unsigned long int)-1, (size_t)-1});
+
+    std::function<void(size_t)> min_gift_cost = [&](size_t employee){
+        std::vector<std::pair<Price, Gift>> gifts(num_gifts);
+        for(size_t i = 0; i < num_gifts; ++i)
+            gifts[i] = {gift_price[i], i};
+        
+        for(auto subordinate : subordinates[employee]){
+            min_gift_cost(subordinate);
+            for(size_t i = 0; i < num_gifts; ++i)
+                gifts[i].first += (cheapest_gift[subordinate].second == i) ? second_cheapest_gift[subordinate].first : cheapest_gift[subordinate].first;
+        }
+
+        std::sort(gifts.begin(), gifts.end());
+        cheapest_gift[employee] = gifts[0];
+        second_cheapest_gift[employee] = gifts[1];
+    };
+
+    for(auto employee : top_level_employees)
+        min_gift_cost(employee);
+
+    std::vector<Gift> gifts(num_employees);
+    Price total_price = 0;
+
+    std::function<void(size_t, size_t)> give_gift = [&](size_t employee, size_t parent_gift){
+        gifts[employee] = (cheapest_gift[employee].second != parent_gift) ? cheapest_gift[employee].second : second_cheapest_gift[employee].second;
+        total_price += gift_price[gifts[employee]];
+
+        for(auto subordinate : subordinates[employee])
+            give_gift(subordinate, gifts[employee]);
+    };
+
+    for(auto employee : top_level_employees)
+        give_gift(employee, -1);
+
+    return {total_price, gifts};
 }
 
 #ifndef __PROGTEST__
