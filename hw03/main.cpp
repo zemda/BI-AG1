@@ -28,55 +28,84 @@ using Gift = size_t;
 
 #endif
 
-void min_gift_cost(size_t employee, std::vector<std::pair<Price, Gift>>& cheapest_gift, std::vector<std::pair<Price, Gift>>& second_cheapest_gift, const std::vector<std::vector<size_t>>& subordinates, const std::vector<Price>& gift_price){
-    size_t num_gifts = gift_price.size();
-    std::vector<std::pair<Price, Gift>> gifts(num_gifts);
-    for(size_t i = 0; i < num_gifts; ++i)
-        gifts[i] = {gift_price[i], i};
-    
-    for(auto subordinate : subordinates[employee]){
-        min_gift_cost(subordinate, cheapest_gift, second_cheapest_gift, subordinates, gift_price);
-        for(size_t i = 0; i < num_gifts; ++i)
-            gifts[i].first += (cheapest_gift[subordinate].second == i) ? second_cheapest_gift[subordinate].first : cheapest_gift[subordinate].first;
+void post_order(size_t start_employee, const std::vector<std::vector<size_t>>& subordinates, std::vector<size_t>& post_order){
+    std::vector<bool> visited(subordinates.size(), false);
+    std::stack<size_t> s;
+    s.push(start_employee);
+    while (!s.empty()){
+        auto employee = s.top();
+        s.pop();
+        post_order.push_back(employee);
+        for (auto subordinate : subordinates[employee])
+            if (!visited[subordinate]){
+                s.push(subordinate);
+                visited[subordinate] = true;
+            }
     }
-
-    std::sort(gifts.begin(), gifts.end());
-    cheapest_gift[employee] = gifts[0];
-    second_cheapest_gift[employee] = gifts[1];
+    std::reverse(post_order.begin(), post_order.end());
 }
 
-void give_gift(size_t employee, size_t parent_gift, std::vector<Gift>& gifts, const std::vector<std::pair<Price, Gift>>& cheapest_gift, const std::vector<std::pair<Price, Gift>>& second_cheapest_gift, Price& total_price, const std::vector<Price>& gift_price, const std::vector<std::vector<size_t>>& subordinates){
-    gifts[employee] = (cheapest_gift[employee].second != parent_gift) ? cheapest_gift[employee].second : second_cheapest_gift[employee].second;
-    total_price += gift_price[gifts[employee]];
+void min_gift_cost(const std::vector<size_t>& post_order, const std::vector<std::vector<size_t>>& subordinates, const std::vector<Price>& gift_price, std::vector<std::pair<Price, Gift>>& cheapest_gift, std::vector<std::pair<Price, Gift>>& second_cheapest_gift){
+    size_t num_gifts = gift_price.size();
 
-    for(auto subordinate : subordinates[employee])
-        give_gift(subordinate, gifts[employee], gifts, cheapest_gift, second_cheapest_gift, total_price, gift_price, subordinates);
+    for (auto employee : post_order){
+        std::vector<std::pair<Price, Gift>> gifts(num_gifts);
+        for(size_t i = 0; i < num_gifts; ++i)
+            gifts[i] = {gift_price[i], i};
+
+        for(auto subordinate : subordinates[employee]){
+            for(size_t i = 0; i < num_gifts; ++i)
+                gifts[i].first += (cheapest_gift[subordinate].second == i) ? second_cheapest_gift[subordinate].first : cheapest_gift[subordinate].first;
+        }
+
+        std::sort(gifts.begin(), gifts.end());
+        cheapest_gift[employee] = gifts[0];
+        second_cheapest_gift[employee] = gifts[1];
+    }
+}
+
+void give_gift(size_t start_employee, const std::vector<std::vector<size_t>>& subordinates, const std::vector<Price>& gift_price, const std::vector<std::pair<Price, Gift>>& cheapest_gift, const std::vector<std::pair<Price, Gift>>& second_cheapest_gift, std::vector<Gift>& gifts, Price& total_price){
+    std::stack<std::pair<size_t, size_t>> stack;
+    stack.push({start_employee, -1});
+
+    while(!stack.empty()){
+        auto [employee, superior_gift] = stack.top();
+        stack.pop();
+
+        gifts[employee] = (cheapest_gift[employee].second != superior_gift) ? cheapest_gift[employee].second : second_cheapest_gift[employee].second;
+        total_price += gift_price[gifts[employee]];
+
+        for(auto subordinate : subordinates[employee])
+            stack.push({subordinate, gifts[employee]});
+    }
 }
 
 std::pair<Price, std::vector<Gift>> optimize_gifts(const std::vector<Employee>& boss, const std::vector<Price>& gift_price){
     size_t num_employees = boss.size();
-    
+    Price total_price = 0;
+
     std::vector<std::vector<size_t>> subordinates(num_employees);
     std::vector<size_t> top_level_employees;
 
-    for(size_t i = 0; i < num_employees; ++i){
+    std::vector<std::pair<Price, Gift>> cheapest_gift(num_employees, {(unsigned long int)-1, (size_t)-1});
+    std::vector<std::pair<Price, Gift>> second_cheapest_gift(num_employees, {(unsigned long int)-1, (size_t)-1});
+
+    std::vector<Gift> gifts(num_employees);
+
+    for(size_t i = 0; i < num_employees; ++i)
         if(boss[i] == NO_EMPLOYEE)
             top_level_employees.push_back(i);
         else
             subordinates[boss[i]].push_back(i);
+
+    for(auto employee : top_level_employees){
+        std::vector<size_t> post_ord;
+        post_order(employee, subordinates, post_ord);
+        min_gift_cost(post_ord, subordinates, gift_price, cheapest_gift, second_cheapest_gift);
     }
-
-    std::vector<std::pair<Price, Gift>> cheapest_gift(num_employees, {(unsigned long int)-1, (size_t)-1}); 
-    std::vector<std::pair<Price, Gift>> second_cheapest_gift(num_employees, {(unsigned long int)-1, (size_t)-1});
-
-    for(auto employee : top_level_employees)
-        min_gift_cost(employee, cheapest_gift, second_cheapest_gift, subordinates, gift_price);
-
-    std::vector<Gift> gifts(num_employees);
-    Price total_price = 0;
     
     for(auto employee : top_level_employees)
-        give_gift(employee, -1, gifts, cheapest_gift, second_cheapest_gift, total_price, gift_price, subordinates);
+        give_gift(employee, subordinates, gift_price, cheapest_gift, second_cheapest_gift, gifts, total_price);
 
     return {total_price, gifts};
 }
