@@ -49,18 +49,24 @@ void min_gift_cost(const std::vector<size_t>& post_order, const std::vector<std:
     size_t num_gifts = gift_price.size();
 
     for (auto employee : post_order){
-        std::vector<std::pair<Price, Gift>> gifts(num_gifts);
-        for(size_t i = 0; i < num_gifts; ++i)
-            gifts[i] = {gift_price[i], i};
+        std::pair<Price, Gift> min1 = {(unsigned long long)-1, 0};
+        std::pair<Price, Gift> min2 = {(unsigned long long)-1, 0};
 
-        for(auto subordinate : subordinates[employee]){
-            for(size_t i = 0; i < num_gifts; ++i)
-                gifts[i].first += (cheapest_gift[subordinate].second == i) ? second_cheapest_gift[subordinate].first : cheapest_gift[subordinate].first;
+        for(size_t i = 0; i < num_gifts; ++i){
+            Price price = gift_price[i];
+            for(auto subordinate : subordinates[employee])
+                price += (cheapest_gift[subordinate].second == i) ? second_cheapest_gift[subordinate].first : cheapest_gift[subordinate].first;
+            
+            if (price < min1.first){
+                min2 = min1;
+                min1 = {price, i};
+            }
+            else if (price < min2.first)
+                min2 = {price, i};
         }
 
-        std::sort(gifts.begin(), gifts.end());
-        cheapest_gift[employee] = gifts[0];
-        second_cheapest_gift[employee] = gifts[1];
+        cheapest_gift[employee] = min1;
+        second_cheapest_gift[employee] = min2;
     }
 }
 
