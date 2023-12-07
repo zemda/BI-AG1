@@ -32,33 +32,33 @@ void init(const std::vector<Employee>& boss, std::vector<std::vector<size_t>>& s
     size_t num_employees = boss.size();
     std::vector<bool> visited(num_employees, false);
     std::stack<size_t> s;
+    size_t index = 0;
 
     for(size_t i = 0; i < num_employees; ++i)
         if(boss[i] == NO_EMPLOYEE)
-            top_level_employees.push_back(i);
+            top_level_employees.emplace_back(i);
         else
-            subordinates[boss[i]].push_back(i);
+            subordinates[boss[i]].emplace_back(i);
 
-    for(auto i : top_level_employees){
+    for(const auto& i : top_level_employees){
         s.push(i);
         while (!s.empty()){
             auto employee = s.top();
             if (!visited[employee]){
                 visited[employee] = true;
-                for(auto subordinate : subordinates[employee])
+                for(const auto& subordinate : subordinates[employee])
                     s.push(subordinate);
             }else{
-                employeeOrder.push_back(employee);
+                employeeOrder[index++] = employee;
                 s.pop();
             }
         }
     }
-        
 }
 
 void min_gift_cost(const std::vector<size_t>& employeeOrder, const std::vector<std::vector<size_t>>& subordinates, const std::vector<Price>& gift_price, std::vector<std::pair<Price, Gift>>& cheapest_gift, std::vector<std::pair<Price, Gift>>& second_cheapest_gift){
     size_t num_gifts = gift_price.size();
-
+    
     for (auto employee : employeeOrder){
         std::pair<Price, Gift> min1 = {(unsigned long long)-1, 0};
         std::pair<Price, Gift> min2 = {(unsigned long long)-1, 0};
@@ -92,7 +92,7 @@ void give_gift(size_t start_employee, const std::vector<std::vector<size_t>>& su
         gifts[employee] = (cheapest_gift[employee].second != superior_gift) ? cheapest_gift[employee].second : second_cheapest_gift[employee].second;
         total_price += gift_price[gifts[employee]];
 
-        for(auto subordinate : subordinates[employee])
+        for(const auto& subordinate : subordinates[employee])
             stack.push({subordinate, gifts[employee]});
     }
 }
@@ -113,7 +113,7 @@ std::pair<Price, std::vector<Gift>> optimize_gifts(const std::vector<Employee>& 
     init(boss, subordinates, employeeOrder, top_level_employees);
     min_gift_cost(employeeOrder, subordinates, gift_price, cheapest_gift, second_cheapest_gift);
 
-    for(auto employee : top_level_employees)
+    for(const auto& employee : top_level_employees)
         give_gift(employee, subordinates, gift_price, cheapest_gift, second_cheapest_gift, gifts, total_price);
 
     return {total_price, gifts};
