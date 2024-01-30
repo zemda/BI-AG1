@@ -1,3 +1,6 @@
+# Disclaimer
+This code is not completed, passed 1/10b - for 5b needed to implement bst with newlines in nodes and for 10b rotations. This code is bst without the newlines augmentation.
+
 # Textový editor
 
 
